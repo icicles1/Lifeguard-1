@@ -1,0 +1,22 @@
+{
+  "name": "lifeguard",
+  "version": "1.0.0",
+  "description": "Official moderation bot for Koholaz Bungalow.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/icicls/Lifeguard.git"
+  },
+  "keywords": [
+    "moderation"
+  ],
+  "author": "luvicicles",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/icicls/Lifeguard/issues"
+  },
+  "homepage": "https://github.com/icicls/Lifeguard#readme"
+}
