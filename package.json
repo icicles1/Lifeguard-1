@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/icicls/Lifeguard/issues"
   },
-  "homepage": "https://github.com/icicls/Lifeguard#readme"
+  "homepage": "https://github.com/icicls/Lifeguard#readme",
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5"
+  }
 }
