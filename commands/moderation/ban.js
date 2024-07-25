@@ -158,7 +158,7 @@ module.exports = {
                 userId: member.id,
                 moderator: author.username,
                 moderatorId: author.id,
-                issued: new Date().toDateString(),
+                issued: new Date(),
             });
 
             await ban.save();

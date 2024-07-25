@@ -73,7 +73,7 @@ module.exports = {
                 userId: bannedUser.user.id,
                 moderator: author.username,
                 moderatorId: author.id,
-                issued: new Date().toDateString(),
+                issued: new Date(),
             });
 
             await unban.save();

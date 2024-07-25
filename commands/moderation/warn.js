@@ -145,8 +145,8 @@ module.exports = {
                 userId: member.id,
                 moderator: author.username,
                 moderatorId: author.id,
-                issued: new Date().toDateString(),
-                expires: expiration.toDateString(),
+                issued: new Date(),
+                expires: expiration,
             });
 
             await warn.save();
