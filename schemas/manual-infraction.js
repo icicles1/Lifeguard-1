@@ -10,7 +10,7 @@ const schema = new mongoose.Schema({
     moderatorId: { type: String, required: true },
     issued: { type: Date, default: Date.now },
     duration: { type: String },
-    expires: { type: String },
+    expires: { type: Date },
 });
 
 module.exports = mongoose.model('Infractions', schema, 'manual-infractions');
