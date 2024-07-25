@@ -6,6 +6,8 @@ const { loadEvents } = require('./structures/event');
 const { join } = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
 
+const mongoose = require('mongoose');
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -36,6 +38,13 @@ setInterval(() => {
     client.user.setActivity(activity.name, { type: activity.type });
     currentIndex = (currentIndex + 1) % activities.length;
 }, 30000);
+
+mongoose.connect(process.env.DATABASE_URL, {
+}).then(() => {
+    console.log('Connected to MongoDB.');
+}).catch(err => {
+    console.log(err);
+});
 
 loadCommands(client);
 loadEvents(join(__dirname, './listeners'), client);
