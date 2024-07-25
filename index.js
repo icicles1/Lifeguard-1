@@ -5,6 +5,7 @@ const loadCommands = require('./structures/command');
 const { loadEvents } = require('./structures/event');
 const { join } = require('path');
 const { handleMessage } = require('./listeners/messageCreate');
+const { checkMessage } = require('./systems/automod');
 
 const mongoose = require('mongoose');
 
@@ -51,6 +52,7 @@ loadEvents(join(__dirname, './listeners'), client);
 
 client.on('messageCreate', async (message) => {
     await handleMessage(message, client);
+    await checkMessage(message);
 });
 
 client.on('ready', () => {
