@@ -182,13 +182,7 @@ module.exports = {
                 expires: expiration.toDateString(),
             });
 
-            const activeTimeout = await Infraction.findOne({
-                userId: member.id,
-                type: 'Timeout',
-                duration: { $gt: date },
-            });
-
-            if (activeTimeout) {
+            if (member.isCommunicationDisabled()) {
                 const embed = new EmbedBuilder()
                 .setColor('#eb4034')
                 .setDescription('This user is already muted.')
