@@ -2,7 +2,6 @@ const { EmbedBuilder } = require('discord.js');
 const Infraction = require('../../schemas/manual-infraction');
 
 const { deleteExpiredInfractions } = require('../../functions/delete-expired-infractions');
-const { formatDates } = require('../../functions/expiry-dates');
 const { generateID } = require('../../functions/generate-infraction-ids');
 
 const warning = new Set();
@@ -137,7 +136,6 @@ module.exports = {
             const infractionID = await generateID();
             const expiration = new Date();
             expiration.setMonth(expiration.getMonth() + 1);
-            const date = await formatDates(expiration);
 
             const warn = new Infraction({
                 infractionId: infractionID,
@@ -168,7 +166,7 @@ module.exports = {
             .addFields(
                 { name: 'Reason', value: `${reason}` },
                 { name: 'Additional Information', value: `${additionalInfo}` },
-                { name: 'Expires', value: `${date}` }
+                { name: 'Expires', value: '4 weeks 2 days' }
             )
             .setFooter({ text: `Infraction ID: ${infractionID}` })
             .setTimestamp()
