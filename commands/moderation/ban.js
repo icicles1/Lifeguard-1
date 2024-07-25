@@ -1,18 +1,16 @@
 const { EmbedBuilder } = require('discord.js');
 const Infraction = require('../../schemas/manual-infraction');
 
-const { deleteExpiredInfractions } = require('../../functions/delete-expired-infractions');
-const { formatDates } = require('../../functions/expiry-dates');
 const { generateID } = require('../../functions/generate-infraction-ids');
 
-const warning = new Set();
+const banning = new Set();
 
 module.exports = {
-    name: 'warn',
-    description: 'Issues a warning.',
-    usage: '>warn [user: User] <...reason: String>',
-    examples: ['>warn 792168652563808306 spamming'],
-    aliases: ['w'],
+    name: 'ban',
+    description: 'Bans a member from the guild.',
+    usage: '>ban [user: User] <...reason: String>',
+    examples: ['>ban 792168652563808306 5 strikes'],
+    aliases: ['b'],
     staff: true,
     info: true,
     async execute(message, args, client) {
@@ -24,7 +22,7 @@ module.exports = {
         if (!args.length) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('You must provide a member to warn.')
+            .setDescription('You must provide a member to ban.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                 message.delete();
@@ -56,7 +54,7 @@ module.exports = {
         if (member.user.bot) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('You cannot warn a bot.')
+            .setDescription('You cannot ban a bot.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                  message.delete();
@@ -69,7 +67,7 @@ module.exports = {
         if (member.id === author.id) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('You cannot warn yourself.')
+            .setDescription('You cannot ban yourself.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                  message.delete();
@@ -82,7 +80,7 @@ module.exports = {
         if (member.roles.highest.position > message.member.roles.highest.position) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('You cannot warn a higher up.')
+            .setDescription('You cannot ban a higher up.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                  message.delete();
@@ -95,7 +93,7 @@ module.exports = {
         if (member.roles.highest.position === message.member.roles.highest.position) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('You cannot warn a staff member with the same rank as you.')
+            .setDescription('You cannot ban a staff member with the same rank as you.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                  message.delete();
@@ -105,10 +103,10 @@ module.exports = {
             return;
         }
 
-        if (warning.has(member.id)) {
+        if (banning.has(member.id)) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('Whoops! Double warn prevented.')
+            .setDescription('Whoops! Double ban prevented.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                  message.delete();
@@ -131,55 +129,98 @@ module.exports = {
             return;
         }
 
-        warning.add(member.id);
+        banning.add(member.id);
 
         try {
-            const infractionID = await generateID();
-            const expiration = new Date();
-            expiration.setMonth(expiration.getMonth() + 1);
-            const date = await formatDates(expiration);
+            const bans = await guild.bans.fetch();
+            const bannedUser = bans.get(userId);
 
-            const warn = new Infraction({
+            if (bannedUser) {
+                const embed = new EmbedBuilder()
+                .setColor('#eb4034')
+                .setDescription('This member is already banned.')
+                const msg = await message.channel.send({ embeds: [embed] });
+                setTimeout(() => {
+                    message.delete();
+                    msg.delete();
+                }, 2000);
+
+                return;
+            }
+
+            const infractionID = await generateID();
+
+            const ban = new Infraction({
                 infractionId: infractionID,
-                type: 'Warn',
+                type: 'Ban',
                 reason: reason,
                 username: member.user.username,
                 userId: member.id,
                 moderator: author.username,
                 moderatorId: author.id,
                 issued: new Date().toDateString(),
-                expires: expiration.toDateString(),
             });
 
-            await warn.save();
+            await ban.save();
             await message.delete();
 
             const embed = new EmbedBuilder()
-            .setColor('#fcd44f')
-            .setDescription(`<@${member.id}> has been **warned** | \`${infractionID}\``)
+            .setColor('#eb4034')
+            .setDescription(`<@${member.id}> has been **banned** | \`${infractionID}\``)
             await message.channel.send({ embeds: [embed] });
 
-            let additionalInfo = 'If you believe this punishment was false, you may DM one of the Head Moderators listed in <#1263994813741535242>.';
-
-            const warnEmbed = new EmbedBuilder()
-            .setColor('#fcd44f')
+            const banEmbed = new EmbedBuilder()
+            .setColor('#eb4034')
             .setAuthor({ name: `${client.user.username}`, iconURL: `${client.user.displayAvatarURL()}` })
-            .setTitle(`You've been warned in ${guild.name}`)
+            .setTitle(`You've been banned from ${guild.name}`)
+            .setDescription('You may appeal this ban by clicking [here](<https://discord.gg/CzXTzKbgTV>).')
             .addFields(
                 { name: 'Reason', value: `${reason}` },
-                { name: 'Additional Information', value: `${additionalInfo}` },
-                { name: 'Expires', value: `${date}` }
             )
             .setFooter({ text: `Infraction ID: ${infractionID}` })
             .setTimestamp()
-            await member.send({ embeds: [warnEmbed] }).catch((error) => {
+            await member.send({ embeds: [banEmbed] }).catch((error) => {
                 console.error(`Failed to send this message to ${member.user.username}: ${error}`);
             });
+
+            const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const channels = await guild.channels.fetch();
+
+            for (const channel of channels.values()) {
+                if (channel.isTextBased()) {
+                    try {
+                        let messagesDeleted = 0;
+                        let lastId;
+
+                        while(true) {
+                            const messages = await channel.messages.fetch({ limit: 100, before: lastId });
+                            if (messages.size === 0) break;
+
+                            const userMessages = messages.filter(m => m.author.id === member.id && m.createdAt > oneDayAgo);
+                            if (userMessages.size === 0) break;
+
+                            await channel.bulkDelete(userMessages);
+                            messagesDeleted += userMessages.size;
+
+                            lastId = messages.last().id;
+
+                            if (messages.size < 100) break;
+                        }
+
+                        if (messagesDeleted > 0) {
+                            console.log(`Deleted ${messagesDeleted} message${messagesDeleted > 1 ? 's' : ''} from ${member.user.username}.`);
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while deleting this user\'s messages: ', error);
+                    }
+                }
+            }
+            await member.ban({ reason, deleteMessageSeconds: 1 });
         } catch (error) {
             console.error(error);
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
-            .setDescription('Failed to process this warn. You may try again in a few minutes.')
+            .setDescription('Failed to process this ban. You may try again in a few minutes.')
             const msg = await message.channel.send({ embeds: [embed] });
             setTimeout(() => {
                  message.delete();
@@ -188,13 +229,7 @@ module.exports = {
 
             return;
         } finally {
-            warning.delete(member.id);
+            banning.delete(member.id);
         }
     },
 };
-
-(async () => {
-    setInterval(async () => {
-        await deleteExpiredInfractions();
-    }, 3600000); // Run every hour
-})();
