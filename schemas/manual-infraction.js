@@ -8,7 +8,7 @@ const schema = new mongoose.Schema({
     userId: { type: String, required: true },
     moderator: { type: String, required: true },
     moderatorId: { type: String, required: true },
-    issued: { type: String, default: Date.now },
+    issued: { type: Date, default: Date.now },
     duration: { type: String },
     expires: { type: String },
 });
