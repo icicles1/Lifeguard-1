@@ -135,7 +135,7 @@ module.exports = {
         try {
             const infractionID = await generateID();
             const expiration = new Date();
-            expiration.setMonth(expiration.getMonth() + 1);
+            expiration.setMinutes(expiration.getMinutes() + 5);
 
             const warn = new Infraction({
                 infractionId: infractionID,
@@ -194,5 +194,5 @@ module.exports = {
 (async () => {
     setInterval(async () => {
         await deleteExpiredInfractions();
-    }, 3600000); // Run every hour
+    }, 60000); // Run every minute
 })();
