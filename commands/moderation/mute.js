@@ -260,5 +260,5 @@ module.exports = {
 (async () => {
     setInterval(async () => {
         await deleteExpiredInfractions();
-    }, 3600000); // Run every hour
+    }, 86400000); // Run every day
 })();
