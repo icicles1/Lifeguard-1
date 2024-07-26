@@ -19,8 +19,9 @@ const recentMessages = new Map();
 async function checkMessage(message) {
     const isStaff = config.staff.includes(message.author.id);
     const isOwner = config.owners.includes(message.author.id);
+    const isBot = message.member.user.bot;
 
-    if (isStaff || isOwner) {
+    if (isStaff || isOwner || isBot) {
         return;
     }
 

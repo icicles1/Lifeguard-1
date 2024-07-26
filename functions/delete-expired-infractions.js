@@ -1,9 +1,8 @@
-const { now } = require('mongoose');
 const Infraction = require('../schemas/manual-infraction');
 
 async function deleteExpiredInfractions() {
     try {
-        const expiredInfraction = await Infraction.find({ expires: { $lte: now } });
+        const expiredInfraction = await Infraction.find({ expires: { $lte: new Date(Date.now()) } });
 
         for (const infraction of expiredInfraction) {
             await Infraction.findByIdAndDelete(infraction._id);
