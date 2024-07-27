@@ -3,6 +3,7 @@ require('dotenv').config();
 const ownerIDs = [
     '792168652563808306', // luvicicles
     '1223639595745542257', // koholaz
+    '1205266015529865347' // crimson2xl
 ];
 
 const staffIDs = [
