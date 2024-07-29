@@ -1,6 +1,6 @@
-async function formatDates(expirationDate) {
+function formatDate(date) {
     const now = new Date();
-    const diff = expirationDate - now;
+    const diff = date - now;
 
     const units = [
         { name: 'year', ms: 31536000000 },
@@ -13,17 +13,29 @@ async function formatDates(expirationDate) {
     ];
 
     let result = '';
-    let remainingTime = diff;
+    let time = diff;
 
-    for (const unit of units) {
-        const value = Math.floor(remainingTime / unit.ms);
+    for (let i = 0; i < units.length; i++) {
+        const unit = units[i];
+        const value = Math.floor(time / unit.ms);
         if (value > 0) {
-            result += `${value} ${unit.name}${value !== 1 ? 's' : ''}`;
-            remainingTime -= value * unit.ms;
+            result += `${value} ${unit.name}${value !== 1 ? 's' : ''} `;
+            time -= value * unit.ms;
+
+            if (['year', 'month', 'week', 'day'].includes(unit.name) && i + 1 < units.length) {
+                const nextUnit = units[i + 1];
+                const nextValue = Math.floor(time / nextUnit.ms);
+                if (nextValue > 0) {
+                    result += `${nextValue} ${nextUnit.name}${nextValue !== 1 ? 's' : ''} `;
+                    break;
+                }
+            } else if (['hour', 'minute', 'second'].includes(unit.name)) {
+                break;
+            }
         }
     }
 
     return result.trim();
 }
 
-module.exports = { formatDates };
+module.exports = { formatDate };
