@@ -43,7 +43,7 @@ module.exports = {
     description: 'Issues a warning.',
     usage: '>warn [user: User] <...reason: String>',
     examples: ['>warn 792168652563808306 spamming'],
-    aliases: ['w'],
+    aliases: ['w', ...Object.keys(shortcuts), ...Object.values(shortcuts).flatMap((s) => s.aliases)],
     staff: true,
     info: true,
     async execute(message, args, client) {
