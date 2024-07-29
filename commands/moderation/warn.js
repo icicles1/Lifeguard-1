@@ -3,8 +3,40 @@ const Infraction = require('../../schemas/manual-infraction');
 
 const { deleteExpiredInfractions } = require('../../functions/delete-expired-infractions');
 const { generateID } = require('../../functions/generate-infraction-ids');
+const { formatDate } = require('../../functions/expiry-dates');
 
 const warning = new Set();
+
+const shortcuts = {
+    beg: {
+      reason: "Constantly begging for Nitro or other items.",
+    },
+    bypass: {
+      reason:
+        "Spelling words differently and/or editing punctuation to bypass the filter or sending a message with bypass via media attachments.",
+    },
+    chain: {
+      reason: "Chaining lyrics, words or phrases.",
+    },
+    dm: {
+      reason: "Unsolicited advertising in DMs.",
+      aliases: ["ad"],
+    },
+    giveaway: {
+      reason: "[GW] Trolling giveaway hosts.",
+      aliases: ["gw"],
+      additionalInfo: true,
+      expires: 180,
+    },
+    lang: {
+      reason: "Speaking in a foreign language.",
+    },
+    inappropriate: {
+      reason:
+        "Sending or implying a topic that is not suitable for younger users and/or is against the rules by messages, emojis images or other means.",
+      aliases: ["inap"],
+    },
+  };
 
 module.exports = {
     name: 'warn',
@@ -19,22 +51,52 @@ module.exports = {
 
         let userId;
         let reason;
+        let expires = new Date();
+        expires.setDate(expires.getDate() + 30);
 
-        if (!args.length) {
-            const embed = new EmbedBuilder()
-            .setColor('#eb4034')
-            .setDescription('You must provide a member to warn.')
-            const msg = await message.channel.send({ embeds: [embed] });
-            setTimeout(() => {
-                message.delete();
-                msg.delete();
-            }, 2000);
+        const commandName = message.content.split(' ')[0].slice(1).toLowerCase();
+        const shortcut = Object.entries(shortcuts).find(
+            ([key, value]) =>
+                key === commandName || (value.aliases && value.aliases.includes(commandName))
+        );
 
-            return;
+        if (shortcut) {
+            if (args.length === 0) {
+                const embed = new EmbedBuilder()
+                .setColor('#eb4034')
+                .setDescription('You must provide a member to warn.')
+                const msg = await message.channel.send({ embeds: [embed] });
+                setTimeout(() => {
+                    message.delete();
+                    msg.delete();
+                }, 2000);
+    
+                return;
+            }
+
+            userId = mentions.users.first() ? mentions.users.first().id : args[0];
+            reason = shortcut[1].reason;
+
+            if (shortcut[1].expires) {
+                expires.setDate(expires.getDate() + shortcut[1].expires);
+            }
+        } else {
+            if (!args.length) {
+                const embed = new EmbedBuilder()
+                .setColor('#eb4034')
+                .setDescription('You must provide a member to warn.')
+                const msg = await message.channel.send({ embeds: [embed] });
+                setTimeout(() => {
+                    message.delete();
+                    msg.delete();
+                }, 2000);
+    
+                return;
+            }
+
+            userId = mentions.users.first() ? mentions.users.first().id : args[0];
+            reason = args.slice(1).join(' ');
         }
-
-        userId = mentions.users.first() ? mentions.users.first().id : args[0];
-        reason = args.slice(1).join(' ');
 
         let member;
         try {
@@ -134,8 +196,6 @@ module.exports = {
 
         try {
             const infractionID = await generateID();
-            const expiration = new Date();
-            expiration.setMonth(expiration.getMonth() + 1);
 
             const warn = new Infraction({
                 infractionId: infractionID,
@@ -145,8 +205,8 @@ module.exports = {
                 userId: member.id,
                 moderator: author.username,
                 moderatorId: author.id,
-                issued: new Date(),
-                expires: expiration,
+                issued: new Date().toLocaleString(),
+                expires: expires.toLocaleString(),
             });
 
             await warn.save();
@@ -166,7 +226,7 @@ module.exports = {
             .addFields(
                 { name: 'Reason', value: `${reason}` },
                 { name: 'Additional Information', value: `${additionalInfo}` },
-                { name: 'Expires', value: '4 weeks 2 days' }
+                { name: 'Expires', value: `${formatDate(expires)}` }
             )
             .setFooter({ text: `Infraction ID: ${infractionID}` })
             .setTimestamp()
