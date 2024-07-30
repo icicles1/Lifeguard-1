@@ -127,7 +127,7 @@ module.exports = {
             return;
         }
 
-        if (member.id === author.id) {
+        /* if (member.id === author.id) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
             .setDescription('You cannot warn yourself.')
@@ -138,7 +138,7 @@ module.exports = {
             }, 2000);
 
             return;
-        }
+        } */
 
         if (member.roles.highest.position > message.member.roles.highest.position) {
             const embed = new EmbedBuilder()
