@@ -1,6 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
 const Infraction = require('../../schemas/manual-infraction');
-const config = require('../../config');
 
 const { deleteExpiredInfractions } = require('../../functions/delete-expired-infractions');
 const { generateID } = require('../../functions/generate-infraction-ids');
@@ -128,7 +127,7 @@ module.exports = {
             return;
         }
 
-        /* if (member.id === author.id) {
+        if (member.id === author.id) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
             .setDescription('You cannot warn yourself.')
@@ -139,41 +138,22 @@ module.exports = {
             }, 2000);
 
             return;
-        } */
-
-        if (!config.owners.includes(message.author.id) && 
-        (config.owners.includes(member.id) || member.roles.highest.position > message.member.roles.highest.position)) {
-        const embed = new EmbedBuilder()
-        .setColor('#eb4034')
-        .setDescription('You cannot warn this member.');
-
-        const msg = await message.channel.send({ embeds: [embed] });
-
-        setTimeout(() => {
-            message.delete();
-            msg.delete();
-        }, 2000);
-
-        return;
         }
 
+        if (member.roles.highest.position > message.member.roles.highest.position) {
+            const embed = new EmbedBuilder()
+            .setColor('#eb4034')
+            .setDescription('You cannot warn a higher up.')
+            const msg = await message.channel.send({ embeds: [embed] });
+            setTimeout(() => {
+                 message.delete();
+                msg.delete();
+            }, 2000);
 
-        if (config.owners.includes(member.id) || member.roles.highest.position > message.member.roles.highest.position) {
-        const embed = new EmbedBuilder()
-        .setColor('#eb4034')
-        .setDescription('You cannot warn this member.');
-
-        const msg = await message.channel.send({ embeds: [embed] });
-
-        setTimeout(() => {
-            message.delete();
-            msg.delete();
-        }, 2000);
-
-        return;
+            return;
         }
 
-        /* if (member.roles.highest.position === message.member.roles.highest.position) {
+        if (member.roles.highest.position === message.member.roles.highest.position) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
             .setDescription('You cannot warn a staff member with the same rank as you.')
@@ -184,7 +164,7 @@ module.exports = {
             }, 2000);
 
             return;
-        } */
+        }
 
         if (warning.has(member.id)) {
             const embed = new EmbedBuilder()
