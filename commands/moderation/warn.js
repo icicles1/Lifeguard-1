@@ -153,7 +153,7 @@ module.exports = {
             return;
         }
 
-        if (member.roles.highest.position === message.member.roles.highest.position) {
+        /* if (member.roles.highest.position === message.member.roles.highest.position) {
             const embed = new EmbedBuilder()
             .setColor('#eb4034')
             .setDescription('You cannot warn a staff member with the same rank as you.')
@@ -164,7 +164,7 @@ module.exports = {
             }, 2000);
 
             return;
-        }
+        } */
 
         if (warning.has(member.id)) {
             const embed = new EmbedBuilder()
